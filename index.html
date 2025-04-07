@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>UNIer - Trợ lý học tiếng Anh</title>
+    <style>
+      /* Giữ nguyên CSS của bạn */
+      :root {
+        --primary-color: #2563eb;
+        --bg-white: #ffffff;
+        --text-dark: #1f2937;
+        --shadow-glow: 0 0 15px rgba(37, 99, 235, 0.2);
+        --border-light: #e5e7eb;
+        --highlight: #3b82f6;
+        --section-bg: rgba(37, 99, 235, 0.03);
+        --example-bg: rgba(255, 255, 255, 0.8);
+        --hover-bg: rgba(255, 255, 255, 0.1);
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          sans-serif;
+        background: var(--bg-white);
+        color: var(--text-dark);
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        line-height: 1.6;
+      }
+
+      #chat-container {
+        flex: 1;
+        max-width: 1000px;
+        margin: 0 auto;
+        width: 100%;
+        padding: 20px;
+        padding-bottom: 100px;
+      }
+
+      #chat-box {
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+      }
+
+      .message-container {
+        position: relative;
+        margin: 20px 0;
+      }
+
+      .message {
+        max-width: 85%;
+        padding: 16px 20px;
+        border-radius: 15px;
+        line-height: 1.6;
+        font-size: 15px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .message.typing {
+        border: 1px solid var(--border-light);
+        opacity: 0;
+        animation: fadeIn 0.3s forwards;
+      }
+
+      .user-message {
+        background: var(--primary-color);
+        color: white;
+        margin-left: auto;
+        border-bottom-right-radius: 5px;
+        box-shadow: var(--shadow-glow);
+      }
+
+      .ai-message {
+        background: var(--bg-white);
+        color: var(--text-dark);
+        margin-right: auto;
+        border-bottom-left-radius: 5px;
+        border: 1px solid var(--border-light);
+      }
+
+      .context-indicator {
+        position: absolute;
+        left: -40px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        background: var(--highlight);
+        color: white;
+        opacity: 0.8;
+      }
+
+      .response-section {
+        margin: 15px 0;
+        padding: 15px;
+        border-radius: 8px;
+        background: var(--section-bg);
+        border-left: 3px solid var(--highlight);
+      }
+
+      .section-title {
+        color: var(--highlight);
+        margin-bottom: 10px;
+        font-size: 1.1em;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .example-box {
+        margin: 10px 0;
+        padding: 12px 15px;
+        background: var(--example-bg);
+        border-radius: 6px;
+        border: 1px solid rgba(37, 99, 235, 0.2);
+      }
+
+      .highlight-text {
+        color: var(--highlight);
+        font-weight: 500;
+      }
+
+      .info-pill {
+        display: inline-flex;
+        align-items: center;
+        padding: 4px 8px;
+        border-radius: 12px;
+        background: rgba(37, 99, 235, 0.1);
+        color: var(--highlight);
+        font-size: 0.9em;
+        margin: 4px;
+      }
+
+      .message-content {
+        white-space: pre-line;
+      }
+
+      .message p {
+        margin: 8px 0;
+      }
+
+      .message ul,
+      .message ol {
+        margin: 8px 0;
+        padding-left: 20px;
+      }
+
+      .message li {
+        margin: 4px 0;
+      }
+
+      .message h2,
+      .message h3 {
+        margin: 12px 0 8px 0;
+        color: var(--highlight);
+      }
+
+      .message blockquote {
+        border-left: 3px solid var(--highlight);
+        margin: 10px 0;
+        padding: 8px 16px;
+        background: rgba(37, 99, 235, 0.05);
+        border-radius: 4px;
+      }
+
+      .message code {
+        background: rgba(37, 99, 235, 0.1);
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-family: monospace;
+      }
+
+      .message table {
+        border-collapse: collapse;
+        margin: 10px 0;
+        width: 100%;
+      }
+
+      .message th,
+      .message td {
+        border: 1px solid var(--border-light);
+        padding: 8px;
+        text-align: left;
+      }
+
+      .message th {
+        background: rgba(37, 99, 235, 0.05);
+      }
+
+      .message sub-section {
+        margin-left: 20px;
+        display: block;
+        padding: 5px 0;
+      }
+
+      .message .tip {
+        background: rgba(37, 99, 235, 0.05);
+        border-radius: 8px;
+        padding: 12px;
+        margin: 10px 0;
+      }
+
+      .message .highlight {
+        color: var(--highlight);
+        font-weight: 500;
+      }
+
+      .input-container {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: var(--bg-white);
+        border-top: 1px solid var(--border-light);
+        padding: 20px;
+        z-index: 100;
+      }
+
+      .input-box {
+        max-width: 1000px;
+        margin: 0 auto;
+        position: relative;
+        background: white;
+        border: 1px solid var(--border-light);
+        border-radius: 12px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
+      }
+
+      .input-box:focus-within {
+        box-shadow: var(--shadow-glow);
+        border-color: var(--primary-color);
+      }
+
+      #user-input {
+        width: 100%;
+        padding: 16px 50px 16px 20px;
+        border: none;
+        border-radius: 12px;
+        outline: none;
+        font-size: 15px;
+        line-height: 1.5;
+        resize: none;
+        max-height: 200px;
+        min-height: 54px;
+      }
+
+      #send-button {
+        position: absolute;
+        right: 12px;
+        bottom: 12px;
+        background: var(--primary-color);
+        color: white;
+        border: none;
+        width: 30px;
+        height: 30px;
+        border-radius: 8px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+      }
+
+      #send-button:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-glow);
+      }
+
+      #send-button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+      }
+
+      .thinking {
+        position: relative;
+        background: linear-gradient(
+          45deg,
+          #f3f4f6 25%,
+          #ffffff 50%,
+          #f3f4f6 75%
+        );
+        background-size: 200% 200%;
+        animation: thinking-gradient 2s ease infinite;
+      }
+
+      .thinking-dots {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        padding: 12px 16px;
+        min-height: 50px;
+      }
+
+      .thinking-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--primary-color);
+        opacity: 0.6;
+        animation: thinking-bounce 1.4s infinite ease-in-out;
+      }
+
+      .thinking-dot:nth-child(1) {
+        animation-delay: -0.32s;
+      }
+      .thinking-dot:nth-child(2) {
+        animation-delay: -0.16s;
+      }
+
+      @keyframes thinking-bounce {
+        0%,
+        80%,
+        100% {
+          transform: scale(0);
+        }
+        40% {
+          transform: scale(1);
+        }
+      }
+
+      @keyframes thinking-gradient {
+        0% {
+          background-position: 100% 50%;
+        }
+        100% {
+          background-position: 0% 50%;
+        }
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @media (max-width: 768px) {
+        #chat-container {
+          padding: 10px;
+          padding-bottom: 90px;
+        }
+
+        .message {
+          max-width: 90%;
+        }
+
+        .input-container {
+          padding: 10px;
+        }
+
+        .context-indicator {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="chat-container">
+      <div id="chat-box"></div>
+    </div>
+    <div class="input-container">
+      <div class="input-box">
+        <textarea
+          id="user-input"
+          placeholder="Nhập tin nhắn của bạn..."
+          rows="1"
+        ></textarea>
+        <button id="send-button" onclick="sendMessage()">
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+          >
+            <path
+              d="M22 2L11 13M22 2L15 22L11 13M11 13L2 9"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <script>
+      const chatBox = document.getElementById("chat-box");
+      const userInput = document.getElementById("user-input");
+      const sendButton = document.getElementById("send-button");
+
+      // Thay URL bằng Worker của bạn
+      const workerUrl = "https://openai-proxy.daotrunghieu080210.workers.dev";
+
+      let conversationHistory = [
+        {
+          role: "system",
+          content: `Bạn là UNIer, một trợ lý học tiếng Anh chuyên nghiệp và thông minh được phát triển bởi Trung Hiếu
+
+        NGUYÊN TẮC GIAO TIẾP:
+        1. Phong cách:
+           - Thân thiện nhưng chuyên nghiệp
+           - Ngắn gọn, súc tích, dễ hiểu
+           - Sử dụng emoji phù hợp tăng tính gần gũi
+        
+        2. Cấu trúc trả lời:
+           - Mở đầu với tóm tắt ngắn gọn
+           - Chia nhỏ thành các phần rõ ràng
+           - Kết thúc với câu hỏi/gợi ý để duy trì cuộc trò chuyện
+        
+        3. Format nội dung:
+           - [Tiêu đề chính] cho các phần chính
+           - **Nhấn mạnh** cho điểm quan trọng
+           - > Ví dụ cụ thể
+           - • Danh sách có dấu chấm
+           - Sử dụng emoji 🎯 cho mục tiêu, 💡 cho tips, ⚠️ cho lưu ý
+        
+        4. Logic trả lời:
+           - Duy trì context của cuộc hội thoại
+           - Phân tích yêu cầu và đưa ra gợi ý phù hợp
+           - Nếu user yêu cầu "tiếp", phát triển thêm từ nội dung trước
+           - Khi giải thích, đi từ dễ đến khó
+        
+        5. Tương tác:
+           - Khuyến khích practice
+           - Đưa ra ví dụ thực tế
+           - Sửa lỗi nhẹ nhàng, khen ngợi khi đúng
+           - Gợi ý hướng phát triển tiếp theo`,
+        },
+      ];
+
+      function formatResponse(text) {
+        text = text.replace(
+          /\[([^\]]+)\]/g,
+          '<h3 class="section-title">$1</h3>'
+        );
+        text = text.replace(
+          /\*\*([^*]+)\*\*/g,
+          '<strong class="highlight-text">$1</strong>'
+        );
+        text = text.replace(
+          /^>\s*(.+)$/gm,
+          '<blockquote class="example-box">$1</blockquote>'
+        );
+        text = text.replace(/^•\s*(.+)$/gm, '<div class="info-pill">$1</div>');
+        text = text.replace(
+          /^\d+\.\s+(.+)$/gm,
+          '<div class="numbered-item">$1</div>'
+        );
+        text = text.replace(/`([^`]+)`/g, "<code>$1</code>");
+        text = text.replace(/💡\s*(.+)/g, '<div class="tip">💡 $1</div>');
+        text = text.replace(/⚠️\s*(.+)/g, '<div class="warning">⚠️ $1</div>');
+        text = text.replace(
+          /^\s{2,4}([^-\s].+)$/gm,
+          "<sub-section>$1</sub-section>"
+        );
+
+        const sections = text.split("\n\n");
+        return sections
+          .map((section) => {
+            if (section.trim().startsWith("[")) {
+              return `<div class="response-section">${section}</div>`;
+            }
+            return `<div class="message-content">${section}</div>`;
+          })
+          .join("");
+      }
+
+      async function typeMessage(element, text) {
+        const formattedText = formatResponse(text);
+        element.innerHTML = "";
+
+        const tempDiv = document.createElement("div");
+        tempDiv.innerHTML = formattedText;
+
+        for (const child of tempDiv.children) {
+          const sectionDiv = document.createElement("div");
+          element.appendChild(sectionDiv);
+
+          if (child.classList.contains("response-section")) {
+            sectionDiv.className = "response-section";
+            await new Promise((resolve) => setTimeout(resolve, 300));
+          }
+
+          const htmlContent = child.innerHTML;
+          const textContent = child.textContent;
+          const characters = textContent.split("");
+
+          let currentIndex = 0;
+          let currentHtml = "";
+
+          for (let i = 0; i < characters.length; i++) {
+            currentIndex++;
+            currentHtml = htmlContent.slice(
+              0,
+              findNthTextPosition(htmlContent, currentIndex)
+            );
+
+            await new Promise((resolve) => setTimeout(resolve, 15));
+            if (child.classList.contains("section-title")) {
+              sectionDiv.className = "section-title";
+            }
+            sectionDiv.innerHTML = currentHtml;
+
+            if (/[.,!?]/.test(characters[i])) {
+              await new Promise((resolve) => setTimeout(resolve, 100));
+            }
+          }
+        }
+      }
+
+      function findNthTextPosition(html, n) {
+        let textCount = 0;
+        let inTag = false;
+
+        for (let i = 0; i < html.length; i++) {
+          if (html[i] === "<") {
+            inTag = true;
+            continue;
+          }
+          if (html[i] === ">") {
+            inTag = false;
+            continue;
+          }
+          if (!inTag) {
+            textCount++;
+            if (textCount === n) {
+              return i + 1;
+            }
+          }
+        }
+        return html.length;
+      }
+
+      async function appendMessage(content, isUser = false, context = null) {
+        const containerDiv = document.createElement("div");
+        containerDiv.className = "message-container";
+
+        const messageDiv = document.createElement("div");
+        messageDiv.className = `message ${
+          isUser ? "user-message" : "ai-message"
+        }`;
+
+        if (context) {
+          const indicatorDiv = document.createElement("div");
+          indicatorDiv.className = "context-indicator";
+          indicatorDiv.textContent = context.emoji;
+          indicatorDiv.title = context.description;
+          containerDiv.appendChild(indicatorDiv);
+        }
+
+        if (!isUser) {
+          const thinkingDiv = document.createElement("div");
+          thinkingDiv.className = "message ai-message thinking";
+          const thinkingDotsDiv = document.createElement("div");
+          thinkingDotsDiv.className = "thinking-dots";
+          thinkingDotsDiv.innerHTML = `
+            <div class="thinking-dot"></div>
+            <div class="thinking-dot"></div>
+            <div class="thinking-dot"></div>
+          `;
+          thinkingDiv.appendChild(thinkingDotsDiv);
+          containerDiv.appendChild(thinkingDiv);
+          chatBox.appendChild(containerDiv);
+
+          setTimeout(() => {
+            thinkingDiv.scrollIntoView({ behavior: "smooth" });
+          }, 100);
+
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+          containerDiv.removeChild(thinkingDiv);
+
+          messageDiv.classList.add("typing");
+          containerDiv.appendChild(messageDiv);
+
+          setTimeout(() => {
+            messageDiv.scrollIntoView({ behavior: "smooth" });
+          }, 100);
+
+          await typeMessage(messageDiv, content);
+        } else {
+          messageDiv.textContent = content;
+          containerDiv.appendChild(messageDiv);
+          chatBox.appendChild(containerDiv);
+
+          setTimeout(() => {
+            messageDiv.scrollIntoView({ behavior: "smooth" });
+          }, 100);
+        }
+      }
+
+      function analyzeSentiment(message) {
+        const keywords = {
+          positive: ["tốt", "hay", "tuyệt", "giỏi", "đúng"],
+          negative: ["sai", "khó", "không hiểu", "lỗi"],
+          question: ["?", "như thế nào", "là gì", "tại sao"],
+          continuation: ["tiếp", "còn nữa", "thêm"],
+        };
+
+        return {
+          isQuestion: keywords.question.some((word) =>
+            message.toLowerCase().includes(word)
+          ),
+          isPositive: keywords.positive.some((word) =>
+            message.toLowerCase().includes(word)
+          ),
+          isNegative: keywords.negative.some((word) =>
+            message.toLowerCase().includes(word)
+          ),
+          isContinuation: keywords.continuation.some((word) =>
+            message.toLowerCase().includes(word)
+          ),
+        };
+      }
+
+      async function getBotResponse(message) {
+        const sentiment = analyzeSentiment(message);
+        conversationHistory.push({ role: "user", content: message });
+
+        try {
+          const response = await fetch(workerUrl, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              model: "gpt-4o",
+              messages: conversationHistory,
+              max_tokens: 1000,
+              temperature: sentiment.isContinuation ? 0.7 : 0.5,
+            }),
+          });
+
+          if (!response.ok) throw new Error(`Worker Error: ${response.status}`);
+
+          const data = await response.json();
+          const reply = data.choices[0].message.content;
+
+          conversationHistory.push({ role: "assistant", content: reply });
+          return reply;
+        } catch (error) {
+          throw new Error("Không thể kết nối với Worker: " + error.message);
+        }
+      }
+
+      function setInputState(enabled) {
+        userInput.disabled = !enabled;
+        sendButton.disabled = !enabled;
+        if (enabled) {
+          userInput.focus();
+        }
+      }
+
+      function clearInput() {
+        userInput.value = "";
+        userInput.style.height = "auto";
+      }
+
+      function scrollToBottom() {
+        window.scrollTo({
+          top: document.body.scrollHeight,
+          behavior: "smooth",
+        });
+      }
+
+      function getErrorMessage(error) {
+        if (error.message.includes("429")) {
+          return "Hệ thống đang bận. Vui lòng thử lại sau vài giây.";
+        }
+        return "Có lỗi xảy ra. Vui lòng thử lại.";
+      }
+
+      userInput.addEventListener("input", function () {
+        this.style.height = "auto";
+        this.style.height = Math.min(this.scrollHeight, 200) + "px";
+      });
+
+      userInput.addEventListener("keypress", (e) => {
+        if (e.key === "Enter" && !e.shiftKey) {
+          e.preventDefault();
+          sendMessage();
+        }
+      });
+
+      async function sendMessage() {
+        const message = userInput.value.trim();
+        if (!message) return;
+
+        try {
+          setInputState(false);
+
+          const sentiment = analyzeSentiment(message);
+          const context = {
+            emoji: sentiment.isQuestion
+              ? "❓"
+              : sentiment.isPositive
+              ? "😊"
+              : "💭",
+            description: sentiment.isQuestion
+              ? "Câu hỏi"
+              : sentiment.isPositive
+              ? "Phản hồi tích cực"
+              : "Trao đổi",
+          };
+
+          appendMessage(message, true);
+          clearInput();
+
+          const response = await getBotResponse(message);
+          appendMessage(response, false, context);
+        } catch (error) {
+          const errorMessage = getErrorMessage(error);
+          appendMessage(errorMessage, false, {
+            emoji: "⚠️",
+            description: "Lỗi",
+          });
+        } finally {
+          setInputState(true);
+          scrollToBottom();
+        }
+      }
+
+      setTimeout(() => {
+        appendMessage(
+          `[Xin chào! 👋]
+
+**Mình là UNIer**, trợ lý học tiếng Anh của bạn.
+
+> Bạn có thể hỏi mình về: từ vựng, ngữ pháp, phát âm, hoặc bất kỳ chủ đề tiếng Anh nào bạn quan tâm.
+
+[Các chủ đề chính]
+  • Học từ vựng theo chủ đề
+  • Luyện tập ngữ pháp
+  • Improve phát âm
+  • Nâng cao kỹ năng giao tiếp
+
+💡 Hãy chọn chủ đề bạn muốn học và mình sẽ giúp bạn!
+
+[Bắt đầu học] 
+Hôm nay bạn muốn học gì? 😊`,
+          false,
+          {
+            emoji: "👋",
+            description: "Lời chào",
+          }
+        );
+      }, 500);
+    </script>
+  </body>
+</html>
